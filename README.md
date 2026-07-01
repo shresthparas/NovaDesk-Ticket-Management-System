@@ -16,7 +16,7 @@
 
 ## 📖 Overview
 
-The **AI-Powered Ticket Support Management System** is a modern, highly scalable helpdesk solution designed to streamline customer support. Moving beyond simple CRUD functionality, this application leverages **Real-Time WebSockets** for live collaboration and **Artificial Intelligence (LLMs)** to automate ticket categorization and draft responses. 
+The **AI-Powered Ticket Support Management System** is a modern, highly scalable helpdesk solution designed to streamline customer support. Moving beyond simple CRUD functionality, this application leverages **Real-Time WebSockets** for live collaboration and **Artificial Intelligence (LLMs)** to  draft responses. 
 
 Designed with a premium "Glassmorphism" UI and robust Role-Based Access Control (RBAC), it provides a secure and seamless experience for End-Users, Support Agents, and Administrators.
 
