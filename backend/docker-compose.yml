@@ -1,0 +1,112 @@
+
+version: '3.8' 
+
+services:
+  fastapi-app:
+    build: . 
+    container_name: support_ticket_fastapi
+    ports:
+      - "8090:8000" 
+    depends_on:
+      - mongodb 
+      - redis   
+      - rabbitmq  
+    environment:
+      
+      MONGO_DETAILS: mongodb://host.docker.internal:27017/  
+      REDIS_URL: redis://redis:6379/0         
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F 
+      SECRET_KEY: "ildp dtcr dsdh cyvu" 
+
+      
+      SMTP_SERVER: "smtp.gmail.com"
+      SMTP_PORT: 587
+      EMAIL_SENDER: "shivanksharma821@gmail.com"
+      EMAIL_PASSWORD: "${EMAIL_PASSWORD}"
+      GROQ_API_KEY: "${GROQ_API_KEY}"
+    networks:
+      - backend_network
+
+  # RabbitMQ Message Broker Service
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine 
+    container_name: support_ticket_rabbitmq
+    ports:
+      - "5672:5672"   
+      - "15672:15672" 
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq/ 
+    networks:
+      - backend_network
+
+  
+  celery-worker:
+    build: . 
+    container_name: support_ticket_celery_worker
+    
+    command: celery -A app.celery_app worker --loglevel=info
+    depends_on:
+      - rabbitmq 
+      - mongodb  
+      - redis    
+    environment:
+      MONGO_DETAILS: mongodb://host.docker.internal:27017/  
+      REDIS_URL: redis://redis:6379/0         
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F 
+
+      
+      SMTP_SERVER: "smtp.gmail.com"
+      SMTP_PORT: 587
+      EMAIL_SENDER: "shivanksharma821@gmail.com"
+      EMAIL_PASSWORD: "${EMAIL_PASSWORD}"
+      GROQ_API_KEY: "${GROQ_API_KEY}"
+    networks:
+      - backend_network
+  
+  celery-beat:
+    build: . 
+    container_name: support_ticket_celery_beat
+    command: celery -A app.celery_app beat --loglevel=info
+    depends_on:
+      - rabbitmq 
+      - mongodb  
+      - redis    
+    environment:
+      MONGO_DETAILS: mongodb://host.docker.internal:27017/  
+      REDIS_URL: redis://redis:6379/0         
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F 
+    networks:
+      - backend_network
+  
+  # MongoDB Database Service
+  mongodb:
+    image: mongo:latest
+    container_name: support_ticket_mongodb
+    ports:
+      - "27017:27017" 
+    volumes:
+      - mongo_data:/data/db 
+    networks:
+      - backend_network
+
+  
+  redis:
+    image: redis:7.0-alpine
+    container_name: support_ticket_redis
+    ports:
+      - "6379:6379" 
+    volumes:
+      - redis_data:/data 
+    networks:
+      - backend_network
+
+
+volumes:
+  mongo_data:
+  redis_data:
+  rabbitmq_data: 
+
+# Custom network for all backend services
+networks:
+  backend_network:
+    driver: bridge
